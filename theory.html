@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevTools Trainer — теория</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .theoryWrap {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+      .nav a {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 12px;
+        color: rgba(255, 255, 255, 0.86);
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        margin-bottom: 10px;
+      }
+      .nav a:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .theory h2 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+      }
+      .theory p {
+        margin: 10px 0;
+        color: rgba(255, 255, 255, 0.84);
+        line-height: 1.55;
+      }
+      .theory ul {
+        margin: 10px 0;
+        padding-left: 18px;
+        color: rgba(255, 255, 255, 0.84);
+        line-height: 1.55;
+      }
+      .theory .mono {
+        font-family: var(--mono);
+      }
+      .theory .muted {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .theory .callout {
+        margin: 12px 0;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(38, 211, 255, 0.08);
+        border: 1px solid rgba(38, 211, 255, 0.16);
+      }
+      @media (max-width: 980px) {
+        .theoryWrap {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="brand">
+          <div class="brand__title">Краткая теория по DevTools</div>
+          <div class="brand__subtitle">Открывается из тренажёра по иконке “?”</div>
+        </div>
+        <div class="header__actions">
+          <a class="btn btn--ghost" href="./index.html">Вернуться к заданиям</a>
+        </div>
+      </header>
+
+      <div class="theoryWrap">
+        <aside class="card nav">
+          <h2 class="card__title">Разделы</h2>
+          <a href="#devtools">DevTools (в целом)</a>
+          <a href="#elements">Elements</a>
+          <a href="#console">Console</a>
+          <a href="#network">Network</a>
+          <a href="#application">Application / Storage</a>
+        </aside>
+
+        <main class="panel theory">
+          <section id="devtools">
+            <div class="kicker">DevTools</div>
+            <h2>Что это</h2>
+            <p>
+              DevTools — набор инструментов веб‑разработчика, встроенных в браузер. Он помогает
+              инспектировать DOM/CSS, выполнять JavaScript, анализировать сеть и хранилища, а также
+              диагностировать проблемы производительности и поведения страницы.
+            </p>
+            <div class="callout">
+              Для QA DevTools полезен, чтобы быстро локализовать дефект, проверить запросы/ответы и
+              понять, что реально хранится на клиенте.
+            </div>
+          </section>
+
+          <section id="elements" style="margin-top: 18px">
+            <div class="kicker">Вкладка Elements</div>
+            <h2>Инспектирование DOM и CSS</h2>
+            <p>
+              Вкладка Elements позволяет просматривать структуру страницы (DOM), менять атрибуты,
+              редактировать HTML, включать/выключать CSS‑правила, смотреть computed‑стили и
+              псевдо‑элементы (<span class="mono">::before</span>/<span class="mono">::after</span>).
+            </p>
+            <p class="muted">Быстрые приёмы:</p>
+            <ul>
+              <li>Поиск элементов (Ctrl/Cmd+F в Elements) по CSS‑селекторам.</li>
+              <li>Редактирование стилей прямо в панели Styles, включая состояния :hover/:active.</li>
+              <li>Проверка скрытия: display/visibility/opacity/aria-hidden и т.п.</li>
+            </ul>
+            <p class="muted">Примеры CSS‑селекторов для поиска:</p>
+            <ul>
+              <li><span class="mono">.class-name</span> — поиск по имени класса</li>
+              <li><span class="mono">#id-name</span> — поиск по id</li>
+              <li><span class="mono">div &gt; div &gt; h2</span> — поиск по иерархии</li>
+            </ul>
+          </section>
+
+          <section id="console" style="margin-top: 18px">
+            <div class="kicker">Вкладка Console</div>
+            <h2>Выполнение JS и диагностика</h2>
+            <p>
+              Console — место для выполнения JavaScript в контексте текущей страницы. Тут удобно
+              читать логи, проверять значения, вызывать отладочные функции приложения и быстро
+              проверять гипотезы.
+            </p>
+            <ul>
+              <li>
+                В тренажёре есть объект <span class="mono">window.Trainer</span> — его функции
+                нужно вызывать в заданиях.
+              </li>
+              <li>
+                Полезно помнить про <span class="mono">$0</span> (последний выбранный элемент в
+                Elements) и <span class="mono">copy(...)</span> (копирование значения).
+              </li>
+            </ul>
+          </section>
+
+          <section id="network" style="margin-top: 18px">
+            <div class="kicker">Вкладка Network</div>
+            <h2>Анализ сетевых запросов</h2>
+            <p>
+              Network показывает все сетевые запросы страницы: URL, метод, статус, время, заголовки,
+              параметры, payload и ответ. Это основной инструмент для анализа взаимодействия
+              клиента и сервера (или, как в этом тренажёре, имитации API).
+            </p>
+            <ul>
+              <li><b>Request</b>: URL, query params, request headers, payload.</li>
+              <li><b>Response</b>: status code, response headers, body (Preview/Response).</li>
+              <li><b>Timing</b>: где тратится время (DNS/SSL/TTFB/Download).</li>
+              <li><b>Preserve log</b> помогает не терять запросы при навигации/перезагрузке.</li>
+            </ul>
+            <p class="muted">
+              Важно: в приложении запросы идут на <span class="mono">/api/mission</span> и
+              обрабатываются Service Worker — поэтому это всё работает без бэкенда, но в Network всё
+              равно видно.
+            </p>
+          </section>
+
+          <section id="application" style="margin-top: 18px">
+            <div class="kicker">Вкладка Application</div>
+            <h2>Хранилища на стороне клиента</h2>
+            <p>
+              Application помогает работать с клиентскими хранилищами: Cookies, Local Storage,
+              Session Storage, IndexedDB, Cache Storage и т.д. Эти хранилища решают разные задачи:
+              хранение настроек, данных сессии, кэширования и оффлайн‑режимов.
+            </p>
+
+            <h2 style="margin-top: 14px">Cookies</h2>
+            <p>
+              Cookies — небольшие фрагменты данных (обычно до ~4KB на cookie), которые браузер может
+              автоматически отправлять вместе с HTTP‑запросами к домену (с учётом Path/Domain и
+              политики SameSite).
+            </p>
+            <ul>
+              <li><b>Применение</b>: сессии, персонализация, аналитика/трекинг.</li>
+              <li>
+                <b>Безопасность</b>: флаг <span class="mono">HttpOnly</span> запрещает доступ из JS;
+                <span class="mono">Secure</span> — только по HTTPS.
+              </li>
+              <li><b>Срок жизни</b>: до истечения expires/max-age или до закрытия браузера (session cookie).</li>
+            </ul>
+
+            <h2 style="margin-top: 14px">localStorage</h2>
+            <p>
+              localStorage — синхронное key‑value хранилище в рамках origin (домен+протокол+порт).
+              Данные живут без срока, пока их явно не удалить.
+            </p>
+            <ul>
+              <li><b>Применение</b>: настройки, состояние UI.</li>
+              <li><b>Объём</b>: обычно 5–10MB на origin (зависит от браузера).</li>
+              <li><b>Важно</b>: не хранить секреты/токены, т.к. доступно из JS и уязвимо к XSS.</li>
+            </ul>
+
+            <h2 style="margin-top: 14px">sessionStorage</h2>
+            <p>
+              sessionStorage похож на localStorage, но живёт только в рамках текущей вкладки/окна и
+              очищается при закрытии вкладки.
+            </p>
+            <ul>
+              <li><b>Применение</b>: временные данные шага/формы.</li>
+              <li><b>Объём</b>: обычно до ~5MB на вкладку (зависит от браузера).</li>
+            </ul>
+
+            <h2 style="margin-top: 14px">IndexedDB</h2>
+            <p>
+              IndexedDB — асинхронная NoSQL‑БД в браузере для структурированных данных. Подходит для
+              больших объёмов, оффлайн‑кэша, сложных объектов и индексов.
+            </p>
+            <ul>
+              <li><b>Применение</b>: оффлайн‑данные, кэш API, крупные списки/объекты.</li>
+              <li><b>Особенности</b>: транзакции, object stores, индексы, асинхронный API.</li>
+              <li><b>В DevTools</b>: Application → IndexedDB позволяет просматривать записи.</li>
+            </ul>
+          </section>
+        </main>
+      </div>
+
+      <footer class="footer">
+        <div class="footer__left">Подсказка: открывай нужный раздел по якорю в адресной строке.</div>
+        <div class="footer__right"><span class="pill">theory.html</span></div>
+      </footer>
+    </div>
+  </body>
+</html>
+

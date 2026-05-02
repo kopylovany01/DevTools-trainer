@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevTools Trainer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="brand">
+          <div class="brand__title">DevTools Trainer</div>
+          <div class="brand__subtitle">20 заданий • прохождение по порядку • без бэкенда</div>
+        </div>
+        <div class="header__actions">
+          <button id="resetProgress" class="btn btn--ghost" type="button">Сбросить прогресс</button>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="panel">
+          <div class="panel__top">
+            <div class="taskHead">
+              <div id="taskKicker" class="kicker"></div>
+              <div class="taskHead__titleRow">
+                <h1 id="taskTitle" class="title"></h1>
+                <a
+                  id="theoryLink"
+                  class="iconLink"
+                  href="./theory.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Краткая теория по текущей вкладке DevTools"
+                  title="Краткая теория"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm0-5.25a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm0-10.5c-1.93 0-3.5 1.36-3.5 3.1h2c0-.7.7-1.1 1.5-1.1.78 0 1.5.4 1.5 1.2 0 .65-.4.96-1.1 1.36-.94.55-1.9 1.2-1.9 2.64V13h2v-.6c0-.55.3-.8 1.18-1.33.98-.58 1.82-1.3 1.82-2.67 0-1.82-1.57-3.15-3.5-3.15Z"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            <div class="progress">
+              <div class="progress__label"><span id="progressText"></span></div>
+              <div class="progress__bar"><div id="progressFill" class="progress__fill"></div></div>
+            </div>
+          </div>
+
+          <div id="taskBody" class="taskBody"></div>
+
+          <div class="taskControls">
+            <button id="taskSetup" class="btn btn--ghost" type="button">Подготовить шаг (если есть)</button>
+            <div class="taskControls__spacer"></div>
+            <input id="answerInput" class="input" placeholder="Введи код/ответ из DevTools…" autocomplete="off" />
+            <button id="checkAnswer" class="btn btn--primary" type="button">Проверить</button>
+          </div>
+
+          <div id="taskFeedback" class="feedback" aria-live="polite"></div>
+        </section>
+
+        <aside class="side">
+          <section class="card">
+            <h2 class="card__title">Подсказки</h2>
+            <ul class="list">
+              <li><b>Elements</b>: ищи атрибуты, комментарии, псевдо‑элементы, скрытые блоки, меняй DOM/CSS.</li>
+              <li><b>Console</b>: вызывай функции на <code>window.Trainer</code>.</li>
+              <li><b>Network</b>: смотри Request/Response, headers, status, query params.</li>
+              <li><b>Storage</b>: Application → Local/Session/Cookies/IndexedDB.</li>
+            </ul>
+          </section>
+
+          <section class="card">
+            <h2 class="card__title">Песочница для Elements</h2>
+            <div id="elementsSandbox" class="sandbox">
+              <div class="sandbox__row">
+                <div class="chip theme-accent" id="accentChip">accent chip</div>
+                <button class="btn btn--tiny" id="sandboxToggle" type="button">toggle</button>
+              </div>
+
+              <div id="badge-secret" class="badge badge--secret" data-code="EL-3F7A" aria-hidden="true">
+                Secret badge
+              </div>
+
+              <div class="drawer" id="drawer" data-state="closed">
+                <div class="drawer__head">Drawer</div>
+                <div class="drawer__body">
+                  <div class="mono">token: <span id="drawerToken">EL-OPEN-71M</span></div>
+                </div>
+              </div>
+
+              <!-- token: EL-COMM-9Q2 -->
+
+              <div class="hintBox" title="EL-TIP-58Q">
+                Наведи/посмотри атрибуты у этого блока.
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2 class="card__title">Кнопки для Network/Storage</h2>
+            <div class="stack">
+              <button id="runFetch" class="btn btn--ghost" type="button">Сделать запрос (fetch)</button>
+              <button id="seedStorage" class="btn btn--ghost" type="button">Заполнить Storage</button>
+              <button id="seedIndexedDb" class="btn btn--ghost" type="button">Создать IndexedDB запись</button>
+            </div>
+            <div class="mono small" id="statusLine"></div>
+          </section>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <div class="footer__left">Совет: держи DevTools открытым и проходи задания строго по порядку.</div>
+        <div class="footer__right"><span class="pill" id="swPill">Service Worker: …</span></div>
+      </footer>
+    </div>
+
+    <script src="./tasks.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
+
