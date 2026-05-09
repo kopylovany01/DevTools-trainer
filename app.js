@@ -1,7 +1,7 @@
 /* global window, document */
 
 (function () {
-  const TASKS = Array.isArray(window.__DT_TASKS__) ? window.__DT_TASKS__ : [];
+  const COLLECTIONS = window.__DT_TASK_COLLECTIONS__ || {};
   const HELPERS = window.__DT_HELPERS__ || {};
 
   const els = {
@@ -21,15 +21,19 @@
     seedStorage: document.getElementById("seedStorage"),
     seedIndexedDb: document.getElementById("seedIndexedDb"),
     sandboxToggle: document.getElementById("sandboxToggle"),
+    brandSubtitle: document.getElementById("brandSubtitle"),
+    changeMode: document.getElementById("changeMode"),
+    side: document.querySelector(".side"),
   };
 
-  const STORAGE_KEY = "devtoolsTrainer.progress.v1";
+  const STORAGE_KEY_BASE = "devtoolsTrainer.progress";
 
   const state = {
+    mode: null,
     index: 0,
   };
 
-  // Console API
+  // Console API (base level)
   window.Trainer = {
     state: { level: 1 },
     ping() {
@@ -51,25 +55,49 @@
     inventory() {
       return [
         { item: "wrench", qty: 1, token: "CO-INV-2C8" },
-        { item: "wire", qty: 3, token: "…" },
+        { item: "wire", qty: 3, token: "..." },
       ];
     },
   };
 
-  function loadProgress() {
+  function normalize(value) {
+    return String(value ?? "")
+      .trim()
+      .replace(/^["'`]/, "")
+      .replace(/["'`]$/, "")
+      .trim();
+  }
+
+  function getActiveCollection() {
+    return state.mode ? COLLECTIONS[state.mode] : null;
+  }
+
+  function getTasks() {
+    return getActiveCollection()?.tasks || [];
+  }
+
+  function getStorageKey(mode) {
+    return `${STORAGE_KEY_BASE}.${mode}.v1`;
+  }
+
+  function loadProgress(mode) {
+    state.index = 0;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(getStorageKey(mode));
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (typeof parsed?.index === "number" && parsed.index >= 0 && parsed.index < TASKS.length) {
+      const tasks = COLLECTIONS[mode]?.tasks || [];
+      if (typeof parsed?.index === "number" && parsed.index >= 0 && parsed.index < tasks.length) {
         state.index = parsed.index;
       }
     } catch {
+      state.index = 0;
     }
   }
 
   function saveProgress() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ index: state.index }));
+    if (!state.mode) return;
+    localStorage.setItem(getStorageKey(state.mode), JSON.stringify({ index: state.index }));
   }
 
   function setFeedback(kind, text) {
@@ -79,33 +107,46 @@
     els.taskFeedback.textContent = text || "";
   }
 
-  function render() {
-    const task = TASKS[state.index];
-    if (!task) {
-      els.taskKicker.textContent = "Готово";
-      els.taskTitle.textContent = "Ты прошёл все задания";
-      if (els.theoryLink) els.theoryLink.href = "./theory.html#devtools";
-      els.taskBody.innerHTML =
-        '<div class="callout">Можно сбросить прогресс и пройти ещё раз. А ещё попробуй пройти, не используя подсказки.</div>';
-      els.answerInput.disabled = true;
-      els.checkAnswer.disabled = true;
-      els.taskSetup.disabled = true;
-      setFeedback("good", "Финиш. Отличная работа.");
-      updateProgress();
-      return;
-    }
+  function disableTaskControls(disabled) {
+    els.answerInput.disabled = disabled;
+    els.checkAnswer.disabled = disabled;
+    els.taskSetup.disabled = disabled;
+  }
 
-    els.taskKicker.textContent = `${task.category} • ${task.id}`;
-    els.taskTitle.textContent = task.title;
-    updateTheoryLink(task.category);
-    els.taskBody.innerHTML = renderBody(task);
+  function renderModePicker() {
+    els.taskKicker.textContent = "Выбор режима";
+    els.taskTitle.textContent = "С какого уровня начинаем?";
+    if (els.brandSubtitle) {
+      els.brandSubtitle.textContent = "Выбери один из режимов в карточке ниже";
+    }
+    if (els.theoryLink) els.theoryLink.href = "./theory.html#devtools";
+
+    els.taskBody.innerHTML = `
+      <p>На этом экране можно выбрать формат обучения.</p>
+      <div class="modePicker">
+        <div class="modeCard">
+          <h3>Тренажер 1 уровень</h3>
+          <p>Базовые 20 заданий с подсказками и пошаговыми формулировками.</p>
+          <button class="btn btn--primary" type="button" data-mode="level1">Запустить уровень 1</button>
+        </div>
+        <div class="modeCard">
+          <h3>Тренажер 2 уровень</h3>
+          <p>20 задач в формате инцидентов, без явных подсказок по шагам.</p>
+          <button class="btn btn--primary" type="button" data-mode="level2">Запустить уровень 2</button>
+        </div>
+      </div>
+    `;
+
+    els.progressText.textContent = "-/-";
+    els.progressFill.style.width = "0%";
     els.answerInput.value = "";
-    els.answerInput.disabled = false;
-    els.checkAnswer.disabled = false;
-    els.taskSetup.disabled = typeof task.setup !== "function";
-    els.answerInput.placeholder = task.answerLabel || "Введи ответ…";
+    els.taskSetup.style.display = "";
+    disableTaskControls(true);
     setFeedback("", "");
-    updateProgress();
+
+    els.taskBody.querySelectorAll("button[data-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => selectMode(btn.getAttribute("data-mode")));
+    });
   }
 
   function updateTheoryLink(category) {
@@ -115,15 +156,11 @@
       Console: "console",
       Network: "network",
       Storage: "application",
+      Application: "application",
+      Device: "devtools",
     };
     const hash = map[String(category)] || "devtools";
     els.theoryLink.href = `./theory.html#${hash}`;
-  }
-
-  function renderBody(task) {
-    const lines = Array.isArray(task.body) ? task.body : [];
-    const items = lines.map((t) => `<li>${escapeHtml(t).replace(/`([^`]+)`/g, "<code>$1</code>")}</li>`).join("");
-    return `<p>Сделай шаги в DevTools и введи ответ.</p><ul>${items}</ul>`;
   }
 
   function escapeHtml(s) {
@@ -135,16 +172,79 @@
       .replaceAll("'", "&#039;");
   }
 
+  function renderBody(task, hasHints) {
+    const lines = Array.isArray(task.body) ? task.body : [];
+    if (!hasHints) {
+      return `<p>${escapeHtml(lines[0] || "Проанализируй кейс в DevTools и введи ответ.").replace(/`([^`]+)`/g, "<code>$1</code>")}</p>`;
+    }
+    const items = lines.map((t) => `<li>${escapeHtml(t).replace(/`([^`]+)`/g, "<code>$1</code>")}</li>`).join("");
+    return `<p>Сделай шаги в DevTools и введи ответ.</p><ul>${items}</ul>`;
+  }
+
   function updateProgress() {
-    const total = TASKS.length;
+    const tasks = getTasks();
+    const total = tasks.length;
     const current = Math.min(state.index + 1, total);
     els.progressText.textContent = `${current}/${total}`;
     const pct = total === 0 ? 0 : Math.round((state.index / total) * 100);
     els.progressFill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
   }
 
+  function render() {
+    const collection = getActiveCollection();
+    if (!collection) {
+      renderModePicker();
+      return;
+    }
+
+    const tasks = getTasks();
+    const task = tasks[state.index];
+
+    if (!task) {
+      els.taskKicker.textContent = `${collection.label} • завершено`;
+      els.taskTitle.textContent = "Ты прошел все задания выбранного режима";
+      if (els.theoryLink) els.theoryLink.href = "./theory.html#devtools";
+      els.taskBody.innerHTML =
+        '<div class="callout">Можно пройти режим заново или переключиться на другой уровень.</div>';
+      els.answerInput.value = "";
+      els.taskSetup.style.display = collection.hasHints ? "" : "none";
+      disableTaskControls(true);
+      setFeedback("good", "Финиш. Отличная работа.");
+      updateProgress();
+      return;
+    }
+
+    els.taskKicker.textContent = `${task.category} • ${task.id}`;
+    els.taskTitle.textContent = task.title;
+    if (els.brandSubtitle) {
+      els.brandSubtitle.textContent = `${collection.label} • ${collection.subtitle}`;
+    }
+    updateTheoryLink(task.category);
+    els.taskBody.innerHTML = renderBody(task, collection.hasHints);
+    if (!collection.hasHints && typeof task.setup === "function") {
+      try {
+        task.setup();
+      } catch {
+      }
+    }
+    els.answerInput.value = "";
+    disableTaskControls(false);
+    els.taskSetup.style.display = collection.hasHints ? "" : "none";
+    els.taskSetup.disabled = !collection.hasHints || typeof task.setup !== "function";
+    els.answerInput.placeholder = task.answerLabel || "Введи ответ...";
+    setFeedback("", "");
+    updateProgress();
+  }
+
+  function selectMode(mode) {
+    if (!COLLECTIONS[mode]) return;
+    state.mode = mode;
+    loadProgress(mode);
+    render();
+  }
+
   function check() {
-    const task = TASKS[state.index];
+    const task = getTasks()[state.index];
     if (!task) return;
     const answer = els.answerInput.value;
     let ok = false;
@@ -155,11 +255,11 @@
     }
 
     if (!ok) {
-      setFeedback("bad", "Пока нет. Проверь DevTools ещё раз и попробуй снова.");
+      setFeedback("bad", "Пока нет. Проверь DevTools еще раз и попробуй снова.");
       return;
     }
 
-    setFeedback("good", "Верно. Открываю следующее задание…");
+    setFeedback("good", "Верно. Открываю следующее задание...");
     state.index += 1;
     saveProgress();
     setTimeout(render, 380);
@@ -185,18 +285,29 @@
     });
 
     els.taskSetup.addEventListener("click", () => {
-      const task = TASKS[state.index];
+      const task = getTasks()[state.index];
       try {
         task?.setup?.();
       } catch {
       }
-      setFeedback("", "Шаг подготовлен. Теперь смотри DevTools.");
+      setFeedback("", "Кейс подготовлен. Проверь DevTools.");
+    });
+
+    els.changeMode.addEventListener("click", () => {
+      state.mode = null;
+      state.index = 0;
+      render();
+      setFeedback("", "Выбери нужный режим.");
     });
 
     els.resetProgress.addEventListener("click", () => {
-      localStorage.removeItem(STORAGE_KEY);
+      Object.keys(COLLECTIONS).forEach((mode) => localStorage.removeItem(getStorageKey(mode)));
       state.index = 0;
-      render();
+      if (state.mode) {
+        render();
+      } else {
+        renderModePicker();
+      }
       setFeedback("", "Прогресс сброшен.");
     });
 
@@ -212,9 +323,7 @@
     });
   }
 
-  loadProgress();
   wireUi();
-  render();
+  renderModePicker();
   registerSw();
 })();
-

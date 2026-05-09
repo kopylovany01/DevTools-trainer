@@ -11,7 +11,7 @@
       <header class="header">
         <div class="brand">
           <div class="brand__title">DevTools Trainer</div>
-          <div class="brand__subtitle">20 заданий • прохождение по порядку • без бэкенда</div>
+          <div id="brandSubtitle" class="brand__subtitle">Выбери режим: базовый уровень или инциденты</div>
         </div>
         <div class="header__actions">
           <button id="resetProgress" class="btn btn--ghost" type="button">Сбросить прогресс</button>
@@ -53,6 +53,7 @@
 
           <div class="taskControls">
             <button id="taskSetup" class="btn btn--ghost" type="button">Подготовить шаг (если есть)</button>
+            <button id="changeMode" class="btn btn--ghost" type="button">Сменить режим</button>
             <div class="taskControls__spacer"></div>
             <input id="answerInput" class="input" placeholder="Введи код/ответ из DevTools…" autocomplete="off" />
             <button id="checkAnswer" class="btn btn--primary" type="button">Проверить</button>
@@ -92,10 +93,26 @@
               </div>
 
               <!-- token: EL-COMM-9Q2 -->
+              <!-- incident: L2-COMM-884 -->
 
               <div class="hintBox" title="EL-TIP-58Q">
                 Наведи/посмотри атрибуты у этого блока.
               </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2 class="card__title">Order Lab (инциденты)</h2>
+            <div class="orderLab" id="orderLabRoot" data-case="idle">
+              <div class="orderLab__row">
+                <div>
+                  <div class="orderLab__title">Checkout: Smart Basket</div>
+                  <div class="orderLab__meta mono" id="orderCaseLabel">case: idle</div>
+                </div>
+                <button id="orderButton" class="btn btn--primary" type="button">Заказать</button>
+              </div>
+              <div class="orderLab__status mono" id="orderStatus">Ожидание действия…</div>
+              <div class="orderLab__hint">Для задач 2-го уровня кликни кнопку и исследуй поведение в DevTools.</div>
             </div>
           </section>
 
